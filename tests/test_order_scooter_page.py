@@ -1,24 +1,22 @@
-from pages.main_page import MainPage
+import pytest
 from pages.order_scooter_page import OrderScooterPage
 import allure
+from data import Urls
+from data import OrderDataInfo
 
 
 class TestOrderScooter:
     @allure.title('Проверка положительного сценария заказа самоката')
-    @allure.description('На главной странице проверяем вход на страницу заказа через'
-                        ' две кнопки "Заказать", заполняем форму заказа и переходим к странице заказа')
-    def test_order_scooter(self, driver, order_data):
-        main_page = MainPage(driver)
+    @allure.description('Проверяем вход на страницу заказа через, заполняем форму заказа и переходим к странице заказа')
+    @pytest.mark.parametrize("personal_data", OrderDataInfo.get_personal_data())
+    def test_order_scooter(self, driver, personal_data):
+
         order_page = OrderScooterPage(driver)
-        first_name, last_name, address, phone_number, metro_station, delivery_date, rental_period, comment = order_data
-        main_page.wait_for_load_main_page()
-        main_page.accept_cookies_button_click()
-        main_page.click_header_order_button()
-        order_page.wait_for_order_page_personal_info_header()
-        main_page.click_on_logo_samokat()
-        main_page.wait_for_load_main_page()
-        main_page.scroll_to_middle_order_button()
-        main_page.click_middle_order_button()
+        order_page.open_page(Urls.ORDER_PAGE)
+        first_name, last_name, address, phone_number, metro_station,\
+            delivery_date, rental_period, comment = personal_data
+        order_page.wait_for_load_page(Urls.ORDER_PAGE)
+        order_page.accept_cookies_button_click()
         order_page.wait_for_order_page_personal_info_header()
         order_page.set_first_name(first_name)
         order_page.set_second_name(last_name)
@@ -44,3 +42,4 @@ class TestOrderScooter:
         order_page.click_confirmation_button_on_modal_window()
         order_page.wait_for_order_created_modal_window()
         order_page.click_watch_the_status_button()
+        order_page.assert_partial_url_in_current_url('track')
